@@ -5,6 +5,9 @@ pipeline {
         DEPLOY_SERVER = '10.247.2.59'
         DEPLOY_DIR = '/var/www'
     }
+    tools {
+        maven 'Maven 3.8.4'  // Replace with your Maven installation name
+    }
     stages {
         stage('Checkout') {
             steps {
