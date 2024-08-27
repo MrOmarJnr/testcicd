@@ -17,7 +17,7 @@ pipeline {
                 script {
                     catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
                         echo 'Building...'
-                        sh 'make'
+                        sh 'mvn clean install'
                         // Archive build artifacts if needed
                         archiveArtifacts artifacts: '**/target/*.jar', allowEmptyArchive: true
                     }
@@ -32,7 +32,7 @@ pipeline {
             }
             steps {
                 echo 'Testing...'
-                sh 'make test'
+                sh 'mvn test'
             }
         }
         stage('Deploy') {
@@ -44,7 +44,7 @@ pipeline {
             steps {
                 echo 'Deploying...'
                 sshagent(['your-ssh-credentials-id']) {
-                    sh "scp -r . ${DEPLOY_USER}@${DEPLOY_SERVER}:${DEPLOY_DIR}"
+                    sh "scp -r target/*.jar ${DEPLOY_USER}@${DEPLOY_SERVER}:${DEPLOY_DIR}"
                 }
             }
         }
