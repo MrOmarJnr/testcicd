@@ -6,21 +6,41 @@ pipeline {
         DEPLOY_DIR = '/var/www'
     }
     stages {
+        stage('Checkout') {
+            steps {
+                echo 'Checking out code...'
+                checkout scm
+            }
+        }
         stage('Build') {
             steps {
-                echo 'Building...'
-                sh 'make'
-                // Archive build artifacts if needed
-                archiveArtifacts artifacts: '**/target/*.jar', allowEmptyArchive: true
+                script {
+                    catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+                        echo 'Building...'
+                        sh 'make'
+                        // Archive build artifacts if needed
+                        archiveArtifacts artifacts: '**/target/*.jar', allowEmptyArchive: true
+                    }
+                }
             }
         }
         stage('Test') {
+            when {
+                expression {
+                    return currentBuild.result == 'SUCCESS' || currentBuild.result == 'UNSTABLE'
+                }
+            }
             steps {
                 echo 'Testing...'
                 sh 'make test'
             }
         }
         stage('Deploy') {
+            when {
+                expression {
+                    return currentBuild.result == 'SUCCESS'
+                }
+            }
             steps {
                 echo 'Deploying...'
                 sshagent(['your-ssh-credentials-id']) {
